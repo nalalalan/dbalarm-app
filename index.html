@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dbalarm / aolabs.io</title>
+  <meta name="description" content="Browser microphone alarm for high relative dB levels.">
+  <link rel="canonical" href="https://dbalarm.aolabs.io/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AO Labs">
+  <meta property="og:title" content="dbalarm">
+  <meta property="og:description" content="Browser microphone alarm for high relative dB levels.">
+  <meta property="og:url" content="https://dbalarm.aolabs.io/">
+  <meta property="og:image" content="https://dbalarm.aolabs.io/icon.svg">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="dbalarm">
+  <meta name="twitter:description" content="Browser microphone alarm for high relative dB levels.">
+  <meta name="application-name" content="dbalarm">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="https://aolabs.io/suite-header.css?v=20260516-suite-bloom">
+  <link rel="stylesheet" href="./styles.css?v=20260522-dbalarm-1">
+</head>
+<body>
+  <header class="suite-topbar">
+    <div class="suite-brand-cluster">
+      <a class="suite-ao-home" href="https://aolabs.io/" aria-label="aolabs.io">
+        <img src="https://aolabs.io/marks/ao-ink.svg?v=20260516-suite-bloom" alt="">
+      </a>
+      <a class="suite-app-brand" href="./" aria-label="dbalarm home">
+        <img class="suite-app-mark" src="./icon.svg" alt="">
+        <span class="suite-app-name">dbalarm</span>
+      </a>
+    </div>
+    <nav class="suite-topbar-actions" aria-label="dbalarm actions">
+      <a href="https://aolabs.io/">home</a>
+    </nav>
+  </header>
+
+  <main class="alarm-shell">
+    <section class="alarm-stage" aria-label="dbalarm monitor">
+      <div class="status-strip">
+        <span id="statusDot" class="status-dot" aria-hidden="true"></span>
+        <span id="statusText">mic off</span>
+      </div>
+
+      <div class="readout" aria-live="polite">
+        <p class="readout-label">relative dB</p>
+        <div class="db-number"><span id="dbValue">--</span><small>dB</small></div>
+        <div class="meter" aria-hidden="true">
+          <span id="meterFill"></span>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <button id="startButton" type="button">start mic</button>
+        <button id="silenceButton" type="button" disabled>silence</button>
+      </div>
+    </section>
+
+    <section class="settings" aria-label="dbalarm threshold">
+      <label class="slider-row" for="thresholdInput">
+        <span>alarm threshold</span>
+        <strong><span id="thresholdValue">78</span> dB</strong>
+      </label>
+      <input id="thresholdInput" type="range" min="55" max="100" value="78" step="1">
+
+      <label class="slider-row" for="holdInput">
+        <span>trigger hold</span>
+        <strong><span id="holdValue">0.35</span>s</strong>
+      </label>
+      <input id="holdInput" type="range" min="0.1" max="1.5" value="0.35" step="0.05">
+
+      <div class="stats-grid" aria-label="dbalarm stats">
+        <p><span>peak</span><strong id="peakValue">-- dB</strong></p>
+        <p><span>quiet reset</span><strong id="resetValue">1.0s</strong></p>
+        <p><span>mic</span><strong id="micValue">required</strong></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js?v=20260522-dbalarm-1"></script>
+</body>
+</html>

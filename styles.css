@@ -1,0 +1,310 @@
+:root {
+  color-scheme: light;
+  --bg: #f2eadf;
+  --panel: rgba(255, 253, 248, .94);
+  --panel-2: rgba(247, 239, 229, .92);
+  --ink: #2c2522;
+  --muted: #6f6259;
+  --line: rgba(102, 82, 68, .22);
+  --alarm: #c96155;
+  --alarm-dark: #873e3f;
+  --teal: #5f938d;
+  --gold: #bd8a43;
+  --shadow: 0 22px 60px rgba(64, 48, 38, .12), inset 0 1px 0 rgba(255, 255, 255, .78);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: #fbf8f2;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% -16%, rgba(201, 97, 85, .18), transparent 42%),
+    linear-gradient(180deg, #eadfd3 0%, #f3ece3 50%, #fbf8f2 100%);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.alarm-shell {
+  width: calc(100% - 28px);
+  max-width: 940px;
+  min-height: calc(100vh - 63px);
+  margin: 0 auto;
+  padding: clamp(18px, 5vw, 54px) 0 38px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(280px, .74fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.alarm-stage,
+.settings {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(255, 253, 248, .97), rgba(247, 239, 229, .94)),
+    var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.alarm-stage {
+  position: relative;
+  min-height: 548px;
+  padding: clamp(18px, 4vw, 34px);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+
+.alarm-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(201, 97, 85, .11), transparent 38%),
+    radial-gradient(circle at 82% 22%, rgba(95, 147, 141, .15), transparent 30%);
+  pointer-events: none;
+}
+
+.alarm-stage > * {
+  position: relative;
+  z-index: 1;
+}
+
+.status-strip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 38px;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid rgba(102, 82, 68, .18);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, .72);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 850;
+  text-transform: lowercase;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #a99b8e;
+  box-shadow: 0 0 0 4px rgba(169, 155, 142, .16);
+}
+
+body[data-state="listening"] .status-dot {
+  background: var(--teal);
+  box-shadow: 0 0 0 4px rgba(95, 147, 141, .16);
+}
+
+body[data-state="armed"] .status-dot {
+  background: var(--gold);
+  box-shadow: 0 0 0 4px rgba(189, 138, 67, .17);
+}
+
+body[data-state="alarm"] .status-dot {
+  background: var(--alarm);
+  box-shadow: 0 0 0 7px rgba(201, 97, 85, .16);
+  animation: pulseDot .75s ease-in-out infinite alternate;
+}
+
+.readout {
+  align-self: center;
+  text-align: center;
+}
+
+.readout-label {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+.db-number {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  color: var(--ink);
+  font-family: "Aptos Display", "Segoe UI Variable Display", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(86px, 18vw, 180px);
+  font-weight: 780;
+  line-height: .86;
+  letter-spacing: 0;
+}
+
+.db-number small {
+  color: var(--muted);
+  font-size: clamp(20px, 4vw, 34px);
+  font-weight: 800;
+}
+
+.meter {
+  width: 100%;
+  max-width: 440px;
+  height: 16px;
+  margin: 30px auto 0;
+  border: 1px solid rgba(102, 82, 68, .18);
+  border-radius: 999px;
+  background: rgba(58, 49, 43, .09);
+  overflow: hidden;
+}
+
+.meter span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--teal), var(--gold) 58%, var(--alarm));
+  transition: width .08s linear;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+button {
+  min-height: 52px;
+  border: 1px solid rgba(61, 49, 42, .17);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, .84);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 850;
+  text-transform: lowercase;
+  cursor: pointer;
+}
+
+button:first-child {
+  background: linear-gradient(135deg, #d87b6d, #9d4a46);
+  color: #fffaf4;
+  border-color: rgba(112, 47, 47, .32);
+  box-shadow: 0 12px 24px rgba(137, 63, 59, .17);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: .46;
+}
+
+.settings {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.slider-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 820;
+  text-transform: lowercase;
+}
+
+.slider-row strong {
+  flex: 0 0 auto;
+  color: var(--ink);
+  font-size: 21px;
+  line-height: 1;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--alarm);
+}
+
+.stats-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.stats-grid p {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(102, 82, 68, .18);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 760;
+  text-transform: lowercase;
+}
+
+.stats-grid strong {
+  color: var(--ink);
+  text-align: right;
+}
+
+body[data-state="alarm"] .alarm-stage {
+  border-color: rgba(201, 97, 85, .55);
+}
+
+@keyframes pulseDot {
+  from { transform: scale(.92); }
+  to { transform: scale(1.18); }
+}
+
+@media (max-width: 760px) {
+  .alarm-shell {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-top: 14px;
+  }
+
+  .alarm-stage {
+    min-height: 430px;
+  }
+
+  .settings {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 440px) {
+  .alarm-shell {
+    width: calc(100% - 20px);
+    max-width: 370px;
+  }
+
+  .alarm-stage {
+    min-height: 396px;
+    padding: 16px;
+  }
+
+  .control-row {
+    grid-template-columns: 1fr;
+  }
+
+  .db-number {
+    font-size: clamp(76px, 28vw, 112px);
+  }
+}
