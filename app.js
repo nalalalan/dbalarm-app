@@ -1,4 +1,7 @@
 const elements = {
+  breathCountValue: document.getElementById("breathCountValue"),
+  breathRateValue: document.getElementById("breathRateValue"),
+  breathSignalValue: document.getElementById("breathSignalValue"),
   dbValue: document.getElementById("dbValue"),
   holdInput: document.getElementById("holdInput"),
   holdValue: document.getElementById("holdValue"),
@@ -22,6 +25,19 @@ const state = {
   alarmMutedUntil: 0,
   animationFrame: 0,
   buffer: null,
+  breathActive: false,
+  breathCandidatePeak: 0,
+  breathCandidateStart: 0,
+  breathCount: 0,
+  breathEnvelope: 0,
+  breathFloor: 0,
+  breathInitialized: false,
+  breathLastAt: 0,
+  breathPeakSignal: 0,
+  breathReady: true,
+  breathRecent: [],
+  breathStartedAt: 0,
+  breathStatus: "idle",
   highSince: 0,
   lastHighAt: 0,
   lastPulseAt: 0,
@@ -44,6 +60,17 @@ const wakeAlarmTone = Object.freeze({
   voicePhrase: "Wake up now",
 });
 
+const breathConfig = Object.freeze({
+  version: "audio-envelope-v1",
+  minGapMs: 1800,
+  minActiveMs: 260,
+  maxActiveMs: 6200,
+  minSignalDb: 1.8,
+  staleMs: 30000,
+  rateWindowMs: 120000,
+});
+
+window.__dbalarmBreath = breathConfig;
 window.__dbalarmTone = wakeAlarmTone;
 
 function nowMs() {
@@ -61,6 +88,45 @@ function updateControls() {
   elements.thresholdValue.textContent = String(threshold);
   elements.holdValue.textContent = holdSeconds.toFixed(2).replace(/0$/, "");
   elements.resetValue.textContent = `${(quietResetMs / 1000).toFixed(1)}s`;
+}
+
+function estimateBreathRate() {
+  const recent = state.breathRecent;
+  if (recent.length < 2) return "--";
+  const first = recent[0];
+  const last = recent[recent.length - 1];
+  const minutes = (last - first) / 60000;
+  if (minutes <= 0) return "--";
+  return ((recent.length - 1) / minutes).toFixed(1);
+}
+
+function setBreathStatus(text) {
+  if (state.breathStatus !== text) {
+    state.breathStatus = text;
+  }
+  if (elements.breathSignalValue) elements.breathSignalValue.textContent = text;
+}
+
+function updateBreathDisplay(status = state.breathStatus) {
+  if (elements.breathCountValue) elements.breathCountValue.textContent = String(state.breathCount);
+  if (elements.breathRateValue) elements.breathRateValue.textContent = estimateBreathRate();
+  setBreathStatus(status);
+}
+
+function resetBreathTracker(time = nowMs()) {
+  state.breathActive = false;
+  state.breathCandidatePeak = 0;
+  state.breathCandidateStart = 0;
+  state.breathCount = 0;
+  state.breathEnvelope = 0;
+  state.breathFloor = 0;
+  state.breathInitialized = false;
+  state.breathLastAt = 0;
+  state.breathPeakSignal = 0;
+  state.breathReady = true;
+  state.breathRecent = [];
+  state.breathStartedAt = time;
+  updateBreathDisplay(state.running ? "learning" : "idle");
 }
 
 function setWakeStatus(text) {
@@ -126,6 +192,77 @@ function relativeDbFromSamples(samples) {
   }
   const rms = Math.sqrt(sum / samples.length);
   return Math.max(0, Math.min(118, 20 * Math.log10(rms || 0.000001) + 100));
+}
+
+function updateBreathTracker(db, time) {
+  if (!state.breathInitialized) {
+    state.breathEnvelope = db;
+    state.breathFloor = db;
+    state.breathPeakSignal = 0;
+    state.breathStartedAt = time;
+    state.breathInitialized = true;
+    updateBreathDisplay("learning");
+    return;
+  }
+
+  const riseAlpha = db > state.breathEnvelope ? 0.22 : 0.08;
+  state.breathEnvelope = state.breathEnvelope * (1 - riseAlpha) + db * riseAlpha;
+  if (state.breathEnvelope < state.breathFloor) {
+    state.breathFloor = state.breathFloor * 0.96 + state.breathEnvelope * 0.04;
+  } else {
+    state.breathFloor = state.breathFloor * 0.998 + state.breathEnvelope * 0.002;
+  }
+
+  const signal = Math.max(0, state.breathEnvelope - state.breathFloor);
+  state.breathPeakSignal = Math.max(signal, state.breathPeakSignal * 0.996);
+  const high = Math.max(breathConfig.minSignalDb, Math.min(9, state.breathPeakSignal * 0.42));
+  const low = Math.max(0.8, high * 0.45);
+  const rearm = Math.max(1.2, high * 1.15);
+  const sinceLast = state.breathLastAt ? time - state.breathLastAt : Number.POSITIVE_INFINITY;
+  let status = time - state.breathStartedAt < 3500 ? "learning" : "listening";
+
+  if (!state.breathActive && state.breathReady && signal >= high && sinceLast >= breathConfig.minGapMs) {
+    state.breathActive = true;
+    state.breathReady = false;
+    state.breathCandidateStart = time;
+    state.breathCandidatePeak = signal;
+    status = "breath";
+  } else if (state.breathActive) {
+    state.breathCandidatePeak = Math.max(state.breathCandidatePeak, signal);
+    const duration = time - state.breathCandidateStart;
+    const release = Math.max(low, state.breathCandidatePeak * 0.78);
+    status = "breath";
+
+    if (signal <= release) {
+      if (
+        duration >= breathConfig.minActiveMs &&
+        duration <= breathConfig.maxActiveMs &&
+        sinceLast >= breathConfig.minGapMs &&
+        state.breathCandidatePeak >= high
+      ) {
+        state.breathCount += 1;
+        state.breathLastAt = time;
+        state.breathRecent.push(time);
+        state.breathRecent = state.breathRecent.filter((stamp) => time - stamp <= breathConfig.rateWindowMs);
+        status = "counted";
+      }
+      state.breathActive = false;
+      state.breathCandidateStart = 0;
+      state.breathCandidatePeak = 0;
+    } else if (duration > breathConfig.maxActiveMs) {
+      state.breathActive = false;
+      state.breathCandidateStart = 0;
+      state.breathCandidatePeak = 0;
+      status = "noise";
+    }
+  } else {
+    if (signal <= rearm) state.breathReady = true;
+    if (state.breathLastAt && time - state.breathLastAt > breathConfig.staleMs) {
+    status = "quiet";
+    }
+  }
+
+  updateBreathDisplay(status);
 }
 
 function createWakeDistortion(audioContext) {
@@ -340,6 +477,7 @@ function sampleLoop() {
   const time = nowMs();
 
   state.peak = Math.max(state.peak, db);
+  updateBreathTracker(db, time);
   elements.dbValue.textContent = String(rounded);
   elements.peakValue.textContent = `${Math.round(state.peak)} dB`;
   elements.meterFill.style.width = `${Math.max(3, Math.min(100, (db / 105) * 100))}%`;
@@ -399,6 +537,7 @@ async function startMic() {
 
     state.running = true;
     state.peak = 0;
+    resetBreathTracker();
     state.highSince = 0;
     state.lastHighAt = 0;
     state.lastPulseAt = 0;
@@ -440,6 +579,7 @@ function stopMic() {
   elements.micValue.textContent = "off";
   elements.dbValue.textContent = "--";
   elements.meterFill.style.width = "0%";
+  resetBreathTracker();
   setState("off", "mic off");
 }
 
@@ -466,5 +606,6 @@ window.addEventListener("pageshow", () => {
 });
 
 updateControls();
+resetBreathTracker();
 setWakeStatus("off");
 setState("off", "mic off");
