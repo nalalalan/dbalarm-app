@@ -81,8 +81,7 @@ input {
   min-height: 548px;
   padding: clamp(18px, 4vw, 34px);
   display: grid;
-  grid-template-rows: auto 1fr auto auto;
-  gap: 16px;
+  grid-template-rows: auto 1fr auto;
   overflow: hidden;
 }
 
@@ -194,48 +193,6 @@ body[data-state="alarm"] .status-dot {
   border-radius: inherit;
   background: linear-gradient(90deg, var(--teal), var(--gold) 58%, var(--alarm));
   transition: width .08s linear;
-}
-
-.breath-panel {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.breath-panel p {
-  margin: 0;
-  min-width: 0;
-  padding: 13px 14px;
-  border: 1px solid rgba(255, 239, 224, .12);
-  border-radius: 8px;
-  background: rgba(4, 5, 7, .44);
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.breath-panel span {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 820;
-  text-transform: lowercase;
-}
-
-.breath-panel strong {
-  color: var(--ink);
-  font-size: clamp(26px, 4vw, 38px);
-  font-weight: 850;
-  line-height: .9;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.breath-panel strong span {
-  color: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  text-transform: none;
 }
 
 .control-row {
@@ -363,14 +320,6 @@ body[data-state="alarm"] .alarm-stage {
 
   .control-row {
     grid-template-columns: 1fr;
-  }
-
-  .breath-panel {
-    grid-template-columns: 1fr;
-  }
-
-  .breath-panel p {
-    padding: 11px 12px;
   }
 
   .db-number {
