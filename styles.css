@@ -1,16 +1,16 @@
 :root {
-  color-scheme: light;
-  --bg: #f2eadf;
-  --panel: rgba(255, 253, 248, .94);
-  --panel-2: rgba(247, 239, 229, .92);
-  --ink: #2c2522;
-  --muted: #6f6259;
-  --line: rgba(102, 82, 68, .22);
-  --alarm: #c96155;
-  --alarm-dark: #873e3f;
-  --teal: #5f938d;
-  --gold: #bd8a43;
-  --shadow: 0 22px 60px rgba(64, 48, 38, .12), inset 0 1px 0 rgba(255, 255, 255, .78);
+  color-scheme: dark;
+  --bg: #07080a;
+  --panel: rgba(17, 18, 21, .96);
+  --panel-2: rgba(24, 22, 24, .92);
+  --ink: #f6efe7;
+  --muted: #b7aaa0;
+  --line: rgba(255, 239, 224, .13);
+  --alarm: #ff695e;
+  --alarm-dark: #b63b38;
+  --teal: #72bcb2;
+  --gold: #d49d47;
+  --shadow: 0 22px 70px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .05);
 }
 
 * {
@@ -19,17 +19,33 @@
 
 html {
   min-height: 100%;
-  background: #fbf8f2;
+  background: var(--bg);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 50% -16%, rgba(201, 97, 85, .18), transparent 42%),
-    linear-gradient(180deg, #eadfd3 0%, #f3ece3 50%, #fbf8f2 100%);
+    radial-gradient(circle at 50% -16%, rgba(255, 105, 94, .12), transparent 42%),
+    radial-gradient(circle at 78% 8%, rgba(114, 188, 178, .08), transparent 34%),
+    linear-gradient(180deg, #07080a 0%, #0c0d10 55%, #07080a 100%);
   color: var(--ink);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.suite-topbar {
+  background: rgba(7, 8, 10, .94) !important;
+  border-bottom-color: rgba(255, 239, 224, .09) !important;
+}
+
+.suite-app-name,
+.suite-topbar a {
+  color: var(--ink) !important;
+}
+
+.suite-topbar-actions a {
+  background: rgba(246, 239, 231, .05) !important;
+  border-color: rgba(246, 239, 231, .13) !important;
 }
 
 button,
@@ -55,7 +71,7 @@ input {
   border: 1px solid var(--line);
   border-radius: 8px;
   background:
-    linear-gradient(145deg, rgba(255, 253, 248, .97), rgba(247, 239, 229, .94)),
+    linear-gradient(145deg, rgba(18, 19, 23, .98), rgba(12, 13, 16, .96)),
     var(--panel);
   box-shadow: var(--shadow);
 }
@@ -74,8 +90,8 @@ input {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(135deg, rgba(201, 97, 85, .11), transparent 38%),
-    radial-gradient(circle at 82% 22%, rgba(95, 147, 141, .15), transparent 30%);
+    linear-gradient(135deg, rgba(255, 105, 94, .09), transparent 38%),
+    radial-gradient(circle at 82% 22%, rgba(114, 188, 178, .11), transparent 30%);
   pointer-events: none;
 }
 
@@ -91,9 +107,9 @@ input {
   min-height: 38px;
   gap: 10px;
   padding: 8px 12px;
-  border: 1px solid rgba(102, 82, 68, .18);
+  border: 1px solid rgba(255, 239, 224, .13);
   border-radius: 999px;
-  background: rgba(255, 253, 248, .72);
+  background: rgba(4, 5, 7, .62);
   color: var(--muted);
   font-size: 13px;
   line-height: 1;
@@ -105,8 +121,8 @@ input {
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  background: #a99b8e;
-  box-shadow: 0 0 0 4px rgba(169, 155, 142, .16);
+  background: #756b64;
+  box-shadow: 0 0 0 4px rgba(117, 107, 100, .18);
 }
 
 body[data-state="listening"] .status-dot {
@@ -164,9 +180,9 @@ body[data-state="alarm"] .status-dot {
   max-width: 440px;
   height: 16px;
   margin: 30px auto 0;
-  border: 1px solid rgba(102, 82, 68, .18);
+  border: 1px solid rgba(255, 239, 224, .13);
   border-radius: 999px;
-  background: rgba(58, 49, 43, .09);
+  background: rgba(246, 239, 231, .08);
   overflow: hidden;
 }
 
@@ -187,9 +203,9 @@ body[data-state="alarm"] .status-dot {
 
 button {
   min-height: 52px;
-  border: 1px solid rgba(61, 49, 42, .17);
+  border: 1px solid rgba(246, 239, 231, .14);
   border-radius: 8px;
-  background: rgba(255, 253, 248, .84);
+  background: rgba(246, 239, 231, .06);
   color: var(--ink);
   font-size: 15px;
   font-weight: 850;
@@ -198,10 +214,10 @@ button {
 }
 
 button:first-child {
-  background: linear-gradient(135deg, #d87b6d, #9d4a46);
-  color: #fffaf4;
-  border-color: rgba(112, 47, 47, .32);
-  box-shadow: 0 12px 24px rgba(137, 63, 59, .17);
+  background: linear-gradient(135deg, #ff7568, #a93635);
+  color: #fff7ef;
+  border-color: rgba(255, 127, 112, .34);
+  box-shadow: 0 12px 30px rgba(255, 105, 94, .16);
 }
 
 button:disabled {
@@ -253,6 +269,7 @@ input[type="range"] {
   gap: 12px;
   padding: 11px 0;
   border-top: 1px solid rgba(102, 82, 68, .18);
+  border-top-color: rgba(255, 239, 224, .13);
   color: var(--muted);
   font-size: 13px;
   font-weight: 760;
@@ -265,7 +282,8 @@ input[type="range"] {
 }
 
 body[data-state="alarm"] .alarm-stage {
-  border-color: rgba(201, 97, 85, .55);
+  border-color: rgba(255, 105, 94, .66);
+  box-shadow: 0 22px 80px rgba(0, 0, 0, .52), 0 0 0 1px rgba(255, 105, 94, .16);
 }
 
 @keyframes pulseDot {

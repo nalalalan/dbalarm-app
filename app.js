@@ -11,6 +11,7 @@ const elements = {
   statusText: document.getElementById("statusText"),
   thresholdInput: document.getElementById("thresholdInput"),
   thresholdValue: document.getElementById("thresholdValue"),
+  wakeValue: document.getElementById("wakeValue"),
 };
 
 const state = {
@@ -29,6 +30,7 @@ const state = {
   running: false,
   stream: null,
   wakeLock: null,
+  wakeRetryTimer: 0,
 };
 
 const quietResetMs = 1000;
@@ -61,23 +63,59 @@ function updateControls() {
   elements.resetValue.textContent = `${(quietResetMs / 1000).toFixed(1)}s`;
 }
 
+function setWakeStatus(text) {
+  if (elements.wakeValue) elements.wakeValue.textContent = text;
+}
+
+function scheduleWakeLockRetry(delayMs = 1200) {
+  if (!state.running || document.visibilityState !== "visible") return;
+  window.clearTimeout(state.wakeRetryTimer);
+  state.wakeRetryTimer = window.setTimeout(() => {
+    state.wakeRetryTimer = 0;
+    requestWakeLock();
+  }, delayMs);
+}
+
 async function requestWakeLock() {
-  if (!("wakeLock" in navigator) || state.wakeLock) return;
+  if (state.wakeLock) {
+    setWakeStatus("awake");
+    return;
+  }
+  if (!("wakeLock" in navigator)) {
+    setWakeStatus("unsupported");
+    return;
+  }
   try {
+    setWakeStatus("requesting");
     state.wakeLock = await navigator.wakeLock.request("screen");
     state.wakeLock.addEventListener("release", () => {
       state.wakeLock = null;
+      if (state.running) {
+        setWakeStatus("reacquiring");
+        scheduleWakeLockRetry(500);
+      } else {
+        setWakeStatus("off");
+      }
     });
+    setWakeStatus("awake");
   } catch (error) {
     console.warn("Screen wake lock unavailable", error);
+    setWakeStatus("blocked");
+    scheduleWakeLockRetry(5000);
   }
 }
 
 function releaseWakeLock() {
-  if (!state.wakeLock) return;
+  window.clearTimeout(state.wakeRetryTimer);
+  state.wakeRetryTimer = 0;
+  if (!state.wakeLock) {
+    setWakeStatus("off");
+    return;
+  }
   const wakeLock = state.wakeLock;
   state.wakeLock = null;
   wakeLock.release().catch(() => {});
+  setWakeStatus("off");
 }
 
 function relativeDbFromSamples(samples) {
@@ -416,10 +454,17 @@ elements.silenceButton.addEventListener("click", silenceAlarm);
 elements.thresholdInput.addEventListener("input", updateControls);
 elements.holdInput.addEventListener("input", updateControls);
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && state.running) {
+  if (!state.running) return;
+  if (document.visibilityState === "visible") {
     requestWakeLock();
+  } else if (!state.wakeLock) {
+    setWakeStatus("background");
   }
+});
+window.addEventListener("pageshow", () => {
+  if (state.running) requestWakeLock();
 });
 
 updateControls();
+setWakeStatus("off");
 setState("off", "mic off");
